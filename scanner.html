@@ -1,14 +1,24 @@
 <!DOCTYPE html>
 <html>
+
 <head>
+
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>Scan QR Santri</title>
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
 
-  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+  <title>Bathik SantriPay - Scan QR</title>
+
+  <script
+    src="https://unpkg.com/html5-qrcode"
+    type="text/javascript">
+  </script>
 
   <style>
+
     body {
       font-family: Arial, sans-serif;
       margin: 0;
@@ -53,104 +63,155 @@
       font-weight: bold;
       margin-top: 10px;
     }
+
   </style>
+
 </head>
+
 
 <body>
 
-<div class="container">
+  <div class="container">
 
-  <h2>SCAN QR SANTRI</h2>
+    <h2>BATHIK SANTRIPAY</h2>
 
-  <div id="status">
-    Meminta akses kamera...
+    <div id="status">
+      Meminta akses kamera...
+    </div>
+
+    <div id="reader"></div>
+
+    <div id="hasil">
+
+      <div>ID SANTRI TERBACA</div>
+
+      <div id="hasilId"></div>
+
+    </div>
+
   </div>
 
-  <div id="reader"></div>
 
-  <div id="hasil">
+  <script>
 
-    <div>ID SANTRI TERBACA</div>
+    let scanner = null;
 
-    <div id="hasilId"></div>
-
-  </div>
-
-</div>
+    let sudahScan = false;
 
 
-<script>
-
-  let scanner = null;
-  let sudahScan = false;
-
-
-  function mulaiScanner() {
-
-    scanner = new Html5Qrcode("reader");
-
-    const config = {
-      fps: 10,
-      qrbox: {
-        width: 250,
-        height: 250
-      }
-    };
+    // URL Web App Bathik SantriPay
+    const KASIR_URL =
+      "https://script.google.com/macros/s/AKfycbzOaCgM6CgPCWMR0r4Mr2CXjBV-0vusdYflQE8HMPY3RuEY4ZQ4-Ec0z0ftoJ3NQ/exec";
 
 
-    scanner.start(
-      {
-        facingMode: "environment"
-      },
+    function mulaiScanner() {
 
-      config,
+      scanner = new Html5Qrcode("reader");
 
-      function(decodedText) {
 
-        if (sudahScan) {
-          return;
+      const config = {
+
+        fps: 10,
+
+        qrbox: {
+          width: 250,
+          height: 250
         }
 
-        sudahScan = true;
+      };
 
-        document.getElementById("hasilId").textContent =
-          decodedText.trim();
 
-        document.getElementById("hasil").style.display =
-          "block";
+      scanner.start(
 
-        document.getElementById("status").textContent =
-          "QR berhasil dibaca.";
+        {
+          facingMode: "environment"
+        },
 
-        scanner.stop().catch(function(error) {
-          console.log(error);
-        });
+        config,
 
-      },
 
-      function(errorMessage) {
+        function(decodedText) {
 
-        // Error scanning biasa diabaikan.
+          if (sudahScan) {
+            return;
+          }
+
+
+          sudahScan = true;
+
+
+          const idSantri =
+            decodedText.trim();
+
+
+          document.getElementById(
+            "hasilId"
+          ).textContent = idSantri;
+
+
+          document.getElementById(
+            "hasil"
+          ).style.display = "block";
+
+
+          document.getElementById(
+            "status"
+          ).textContent =
+            "QR berhasil dibaca. Membuka Kasir...";
+
+
+          /*
+           * Setelah QR terbaca,
+           * arahkan ke Web App Kasir
+           * sambil membawa ID Santri.
+           */
+
+          const tujuan =
+            KASIR_URL +
+            "?id=" +
+            encodeURIComponent(idSantri);
+
+
+          setTimeout(function() {
+
+            window.location.href = tujuan;
+
+          }, 700);
+
+
+        },
+
+
+        function(errorMessage) {
+
+          // Error scanning biasa diabaikan.
+
+        }
+
+
+      ).catch(function(error) {
+
+        document.getElementById(
+          "status"
+        ).textContent =
+          "Kamera tidak dapat dibuka: " + error;
+
+      });
+
+    }
+
+
+    window.addEventListener(
+      "load",
+      function() {
+
+        mulaiScanner();
 
       }
+    );
 
-    ).catch(function(error) {
-
-      document.getElementById("status").textContent =
-        "Kamera tidak dapat dibuka: " + error;
-
-    });
-
-  }
-
-
-  window.addEventListener("load", function() {
-
-    mulaiScanner();
-
-  });
-
-</script>
+  </script>
 
 </body>
+
 </html>
