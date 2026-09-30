@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Scan QR Santri</title>
+
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f4f6f8;
+      text-align: center;
+    }
+
+    .container {
+      max-width: 500px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+    }
+
+    h2 {
+      margin-top: 5px;
+    }
+
+    #reader {
+      width: 100%;
+      max-width: 420px;
+      margin: 20px auto;
+    }
+
+    #status {
+      margin: 15px 0;
+      color: #555;
+    }
+
+    #hasil {
+      display: none;
+      margin-top: 20px;
+      padding: 20px;
+      background: #eef6ff;
+      border-radius: 10px;
+    }
+
+    #hasilId {
+      font-size: 28px;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <h2>SCAN QR SANTRI</h2>
+
+  <div id="status">
+    Meminta akses kamera...
+  </div>
+
+  <div id="reader"></div>
+
+  <div id="hasil">
+
+    <div>ID SANTRI TERBACA</div>
+
+    <div id="hasilId"></div>
+
+  </div>
+
+</div>
+
+
+<script>
+
+  let scanner = null;
+  let sudahScan = false;
+
+
+  function mulaiScanner() {
+
+    scanner = new Html5Qrcode("reader");
+
+    const config = {
+      fps: 10,
+      qrbox: {
+        width: 250,
+        height: 250
+      }
+    };
+
+
+    scanner.start(
+      {
+        facingMode: "environment"
+      },
+
+      config,
+
+      function(decodedText) {
+
+        if (sudahScan) {
+          return;
+        }
+
+        sudahScan = true;
+
+        document.getElementById("hasilId").textContent =
+          decodedText.trim();
+
+        document.getElementById("hasil").style.display =
+          "block";
+
+        document.getElementById("status").textContent =
+          "QR berhasil dibaca.";
+
+        scanner.stop().catch(function(error) {
+          console.log(error);
+        });
+
+      },
+
+      function(errorMessage) {
+
+        // Error scanning biasa diabaikan.
+
+      }
+
+    ).catch(function(error) {
+
+      document.getElementById("status").textContent =
+        "Kamera tidak dapat dibuka: " + error;
+
+    });
+
+  }
+
+
+  window.addEventListener("load", function() {
+
+    mulaiScanner();
+
+  });
+
+</script>
+
+</body>
+</html>
