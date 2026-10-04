@@ -133,15 +133,27 @@ const LOGIN_PETUGAS_URL =
 // Cek sesi petugas sebelum membuka kamera
 function cekSesiPetugas() {
 
-  // Ambil token dari URL terlebih dahulu
+  /*
+   * Ambil token dari URL.
+   *
+   * Token dikirim oleh halaman Login Petugas
+   * melalui:
+   *
+   * ?token=TOKEN
+   */
   const parameterURL =
-    new URLSearchParams(window.location.search);
+    new URLSearchParams(
+      window.location.search
+    );
 
   const tokenDariURL =
     parameterURL.get("token");
 
-  // Jika ada token dari Login Petugas,
-  // simpan ke sessionStorage
+
+  /*
+   * Jika ada token dari URL,
+   * simpan ke sessionStorage Scanner.
+   */
   if (tokenDariURL) {
 
     sessionStorage.setItem(
@@ -149,23 +161,33 @@ function cekSesiPetugas() {
       tokenDariURL
     );
 
-    // Bersihkan token dari alamat browser
+    /*
+     * Bersihkan token dari alamat browser
+     * setelah berhasil disimpan.
+     */
     window.history.replaceState(
       {},
       document.title,
       window.location.pathname
     );
+
   }
 
 
-  // Ambil token dari sessionStorage
+  /*
+   * Sekarang ambil token dari
+   * sessionStorage Scanner.
+   */
   const token =
     sessionStorage.getItem(
       "bathikPetugasToken"
     );
 
 
-  // Tidak ada token → kembali ke Login Petugas
+  /*
+   * Tidak ada token sama sekali
+   * → kembali ke Login Petugas.
+   */
   if (!token) {
 
     window.location.href =
@@ -174,22 +196,38 @@ function cekSesiPetugas() {
     return;
   }
 
+
+  /*
+   * Validasi token ke Apps Script.
+   */
   const urlValidasi =
     KASIR_URL +
     "?action=validasiPetugas" +
     "&token=" +
-    encodeURIComponent(token);
+    encodeURIComponent(
+      token
+    );
 
 
   fetch(urlValidasi)
 
     .then(function(response) {
+
       return response.json();
+
     })
 
     .then(function(hasil) {
 
-      if (!hasil || !hasil.berhasil) {
+
+      /*
+       * Token tidak valid
+       * → hapus sesi dan kembali login.
+       */
+      if (
+        !hasil ||
+        !hasil.berhasil
+      ) {
 
         sessionStorage.removeItem(
           "bathikPetugasToken"
@@ -207,6 +245,7 @@ function cekSesiPetugas() {
           "bathikPetugasRole"
         );
 
+
         window.location.href =
           LOGIN_PETUGAS_URL;
 
@@ -214,19 +253,49 @@ function cekSesiPetugas() {
       }
 
 
-      // Sesi valid → baru buka kamera
-      document.getElementById("status").textContent =
+      /*
+       * Sesi valid.
+       *
+       * Simpan kembali data petugas
+       * agar tersedia selama sesi Scanner.
+       */
+      sessionStorage.setItem(
+        "bathikPetugasId",
+        hasil.idPetugas
+      );
+
+      sessionStorage.setItem(
+        "bathikPetugasNama",
+        hasil.nama
+      );
+
+      sessionStorage.setItem(
+        "bathikPetugasRole",
+        hasil.role
+      );
+
+
+      /*
+       * Sesi valid → buka kamera.
+       */
+      document.getElementById(
+        "status"
+      ).textContent =
         "Login sebagai " +
         hasil.nama +
         ". Memulai kamera...";
+
 
       mulaiScanner();
 
     })
 
+
     .catch(function(error) {
 
-      document.getElementById("status").textContent =
+      document.getElementById(
+        "status"
+      ).textContent =
         "Gagal memeriksa sesi petugas.";
 
       console.error(error);
@@ -234,7 +303,6 @@ function cekSesiPetugas() {
     });
 
 }
-
 
     function mulaiScanner() {
 
