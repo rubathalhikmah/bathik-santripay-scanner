@@ -133,9 +133,39 @@ const LOGIN_PETUGAS_URL =
 // Cek sesi petugas sebelum membuka kamera
 function cekSesiPetugas() {
 
-  const token =
-    sessionStorage.getItem("bathikPetugasToken");
+  // Ambil token dari URL terlebih dahulu
+  const parameterURL =
+    new URLSearchParams(window.location.search);
 
+  const tokenDariURL =
+    parameterURL.get("token");
+
+  // Jika ada token dari Login Petugas,
+  // simpan ke sessionStorage
+  if (tokenDariURL) {
+
+    sessionStorage.setItem(
+      "bathikPetugasToken",
+      tokenDariURL
+    );
+
+    // Bersihkan token dari alamat browser
+    window.history.replaceState(
+      {},
+      document.title,
+      window.location.pathname
+    );
+  }
+
+
+  // Ambil token dari sessionStorage
+  const token =
+    sessionStorage.getItem(
+      "bathikPetugasToken"
+    );
+
+
+  // Tidak ada token → kembali ke Login Petugas
   if (!token) {
 
     window.location.href =
@@ -143,7 +173,6 @@ function cekSesiPetugas() {
 
     return;
   }
-
 
   const urlValidasi =
     KASIR_URL +
