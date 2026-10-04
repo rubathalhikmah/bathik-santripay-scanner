@@ -1,93 +1,114 @@
 <!DOCTYPE html>
 <html>
-
 <head>
+  <base target="_top">
 
-  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
 
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
-  >
+  <title>Scan QR Santri</title>
 
-  <title>Bathik SantriPay - Scan QR</title>
-
-  <script
-    src="https://unpkg.com/html5-qrcode"
-    type="text/javascript">
-  </script>
+  <script src="https://unpkg.com/html5-qrcode"
+          type="text/javascript"></script>
 
   <style>
+    * {
+      box-sizing: border-box;
+    }
 
     body {
-      font-family: Arial, sans-serif;
       margin: 0;
       padding: 20px;
-      background: #f4f6f8;
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
       text-align: center;
     }
 
-    .container {
-      max-width: 500px;
-      margin: auto;
-      background: white;
-      padding: 20px;
-      border-radius: 12px;
+    h2 {
+      margin-top: 10px;
+      margin-bottom: 8px;
     }
 
-    h2 {
-      margin-top: 5px;
+    .info {
+      margin-bottom: 20px;
+      color: #666;
+      font-size: 14px;
     }
 
     #reader {
       width: 100%;
       max-width: 420px;
-      margin: 20px auto;
-    }
-
-    #status {
-      margin: 15px 0;
-      color: #555;
+      margin: 0 auto;
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 10px;
+      overflow: hidden;
     }
 
     #hasil {
       display: none;
-      margin-top: 20px;
-      padding: 20px;
-      background: #eef6ff;
-      border-radius: 10px;
+      max-width: 420px;
+      margin: 20px auto 0;
+      padding: 15px;
+      background: #ffffff;
+      border-radius: 12px;
     }
 
     #hasilId {
-      font-size: 28px;
+      font-size: 24px;
       font-weight: bold;
-      margin-top: 10px;
+      margin: 8px 0;
     }
 
+    .tombol {
+      display: inline-block;
+      margin-top: 15px;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    #btnKembali {
+      background: #333;
+      color: white;
+    }
+
+    #status {
+      margin-top: 15px;
+      font-size: 14px;
+      color: #555;
+    }
   </style>
-
 </head>
-
 
 <body>
 
-  <div class="container">
+  <h2>SCAN QR SANTRI</h2>
 
-    <h2>BATHIK SANTRIPAY</h2>
+  <div class="info">
+    Arahkan kamera ke QR Code santri
+  </div>
 
-    <div id="status">
-      Meminta akses kamera...
-    </div>
+  <div id="reader"></div>
 
-    <div id="reader"></div>
+  <div id="status">
+    Memulai kamera...
+  </div>
 
-    <div id="hasil">
+  <div id="hasil">
 
-      <div>ID SANTRI TERBACA</div>
+    <div>ID SANTRI TERBACA</div>
 
-      <div id="hasilId"></div>
+    <div id="hasilId"></div>
 
-    </div>
+    <button
+      id="btnKembali"
+      class="tombol"
+      onclick="kembaliKeKasir()">
+      KEMBALI KE KASIR
+    </button>
 
   </div>
 
@@ -96,38 +117,115 @@
 
     let scanner = null;
 
-    let sudahScan = false;
+let sudahScan = false;
 
 
-    // URL Web App Bathik SantriPay
-    const KASIR_URL =
-  "https://script.google.com/macros/s/AKfycbzOaCgM6CgPCWMR0r4Mr2CXjBV-0vusdYflQE8HMPY3RMuEY4ZQ4-Ec0z0ftoJ3NQ/exec";
+// URL Web App Bathik SantriPay
+const KASIR_URL =
+  "https://script.google.com/macros/s/AKfycbzOaCgM6CgPCWMR0r4Mr2CXjBV-0vusdYflQE8HMPY3RMuEY4ZQ4-Ec0z0ftoJ3NQ";
+
+
+// URL Login Petugas
+const LOGIN_PETUGAS_URL =
+  KASIR_URL + "?page=LoginPetugas";
+
+
+// Cek sesi petugas sebelum membuka kamera
+function cekSesiPetugas() {
+
+  const token =
+    sessionStorage.getItem("bathikPetugasToken");
+
+  if (!token) {
+
+    window.location.href =
+      LOGIN_PETUGAS_URL;
+
+    return;
+  }
+
+
+  const urlValidasi =
+    KASIR_URL +
+    "?action=validasiPetugas" +
+    "&token=" +
+    encodeURIComponent(token);
+
+
+  fetch(urlValidasi)
+
+    .then(function(response) {
+      return response.json();
+    })
+
+    .then(function(hasil) {
+
+      if (!hasil || !hasil.berhasil) {
+
+        sessionStorage.removeItem(
+          "bathikPetugasToken"
+        );
+
+        sessionStorage.removeItem(
+          "bathikPetugasId"
+        );
+
+        sessionStorage.removeItem(
+          "bathikPetugasNama"
+        );
+
+        sessionStorage.removeItem(
+          "bathikPetugasRole"
+        );
+
+        window.location.href =
+          LOGIN_PETUGAS_URL;
+
+        return;
+      }
+
+
+      // Sesi valid → baru buka kamera
+      document.getElementById("status").textContent =
+        "Login sebagai " +
+        hasil.nama +
+        ". Memulai kamera...";
+
+      mulaiScanner();
+
+    })
+
+    .catch(function(error) {
+
+      document.getElementById("status").textContent =
+        "Gagal memeriksa sesi petugas.";
+
+      console.error(error);
+
+    });
+
+}
+
 
     function mulaiScanner() {
 
       scanner = new Html5Qrcode("reader");
 
-
       const config = {
-
         fps: 10,
-
         qrbox: {
           width: 250,
           height: 250
-        }
-
+        },
+        aspectRatio: 1.0
       };
 
-
       scanner.start(
-
         {
           facingMode: "environment"
         },
 
         config,
-
 
         function(decodedText) {
 
@@ -135,66 +233,47 @@
             return;
           }
 
-
           sudahScan = true;
 
+          const idSantri = decodedText.trim();
 
-          const idSantri =
-            decodedText.trim();
+          document.getElementById("hasilId").textContent =
+            idSantri;
 
+          document.getElementById("hasil").style.display =
+            "block";
 
-          document.getElementById(
-            "hasilId"
-          ).textContent = idSantri;
+          document.getElementById("status").textContent =
+            "QR berhasil dibaca.";
 
+          scanner.stop().then(function() {
 
-          document.getElementById(
-            "hasil"
-          ).style.display = "block";
+            /*
+             * Untuk tahap pertama kita hanya
+             * menampilkan ID yang berhasil dibaca.
+             *
+             * Setelah scanner terbukti bekerja,
+             * kita sambungkan kembali ke halaman kasir.
+             */
 
+          }).catch(function(error) {
 
-          document.getElementById(
-            "status"
-          ).textContent =
-            "QR berhasil dibaca. Membuka Kasir...";
+            console.log(error);
 
-
-          /*
-           * Setelah QR terbaca,
-           * arahkan ke Web App Kasir
-           * sambil membawa ID Santri.
-           */
-
-const tujuan =
-  KASIR_URL +
-  "?id=" +
-  encodeURIComponent(idSantri);
-
-console.log("ID Santri:", idSantri);
-console.log("Tujuan:", tujuan);
-
-          setTimeout(function() {
-
-            window.location.href = tujuan;
-
-          }, 700);
-
+          });
 
         },
-
 
         function(errorMessage) {
 
           // Error scanning biasa diabaikan.
+          // Kamera tetap berjalan.
 
         }
 
-
       ).catch(function(error) {
 
-        document.getElementById(
-          "status"
-        ).textContent =
+        document.getElementById("status").textContent =
           "Kamera tidak dapat dibuka: " + error;
 
       });
@@ -202,17 +281,21 @@ console.log("Tujuan:", tujuan);
     }
 
 
+    function kembaliKeKasir() {
+
+      window.history.back();
+
+    }
     window.addEventListener(
-      "load",
-      function() {
+  "load",
+  function() {
 
-        mulaiScanner();
+    cekSesiPetugas();
 
-      }
-    );
+  }
+);
 
   </script>
 
 </body>
-
 </html>
