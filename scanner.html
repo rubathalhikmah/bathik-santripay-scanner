@@ -88,7 +88,10 @@
 
 
     /*
-     * Memeriksa token yang ada di URL.
+     * CEK TOKEN DI URL
+     *
+     * Tidak melakukan fetch ke Apps Script.
+     * Token sudah dibuat oleh Login Petugas.
      */
     function cekSesiPetugas() {
 
@@ -97,12 +100,16 @@
           window.location.search
         );
 
+
       const token =
         String(
           params.get("token") || ""
         ).trim();
 
 
+      /*
+       * Token wajib ada.
+       */
       if (!token) {
 
         document.getElementById(
@@ -111,12 +118,11 @@
           "ERROR: Token petugas tidak ditemukan.";
 
         return;
-
       }
 
 
       /*
-       * Simpan token.
+       * Simpan token ke sessionStorage.
        */
       sessionStorage.setItem(
         "bathikPetugasToken",
@@ -125,132 +131,22 @@
 
 
       /*
-       * Buat URL validasi.
+       * Token ditemukan.
+       * Langsung mulai kamera.
        */
-      const urlValidasi =
-        KASIR_URL +
-        "?action=validasiPetugas" +
-        "&token=" +
-        encodeURIComponent(token);
+      document.getElementById(
+        "status"
+      ).textContent =
+        "Sesi petugas ditemukan. Memulai kamera...";
 
 
-      /*
-       * Gunakan JSONP.
-       *
-       * Apps Script sering melakukan redirect.
-       * JSONP menghindari masalah CORS
-       * dari fetch() pada GitHub Pages.
-       */
-      const namaCallback =
-        "validasiPetugasCallback";
-
-
-      window[namaCallback] =
-        function(hasil) {
-
-          /*
-           * Hapus script JSONP.
-           */
-          const script =
-            document.getElementById(
-              "scriptValidasiPetugas"
-            );
-
-          if (script) {
-            script.remove();
-          }
-
-
-          if (
-            !hasil ||
-            !hasil.berhasil
-          ) {
-
-            sessionStorage.removeItem(
-              "bathikPetugasToken"
-            );
-
-            document.getElementById(
-              "status"
-            ).textContent =
-              "ERROR: Token ditolak server.";
-
-            return;
-
-          }
-
-
-          /*
-           * Simpan data petugas.
-           */
-          sessionStorage.setItem(
-            "bathikPetugasId",
-            hasil.idPetugas || ""
-          );
-
-          sessionStorage.setItem(
-            "bathikPetugasNama",
-            hasil.nama || ""
-          );
-
-          sessionStorage.setItem(
-            "bathikPetugasRole",
-            hasil.role || ""
-          );
-
-
-          document.getElementById(
-            "status"
-          ).textContent =
-            "Login sebagai " +
-            hasil.nama +
-            ". Memulai kamera...";
-
-
-          mulaiScanner();
-
-        };
-
-
-      /*
-       * Tambahkan parameter callback.
-       */
-      const script =
-        document.createElement(
-          "script"
-        );
-
-
-      script.id =
-        "scriptValidasiPetugas";
-
-
-      script.src =
-        urlValidasi +
-        "&callback=" +
-        namaCallback;
-
-
-      script.onerror =
-        function() {
-
-          document.getElementById(
-            "status"
-          ).textContent =
-            "ERROR: Gagal menghubungi server.";
-
-        };
-
-
-      document.body.appendChild(
-        script
-      );
+      mulaiScanner();
 
     }
 
 
     /*
-     * MULAI KAMERA
+     * MULAI SCANNER
      */
     function mulaiScanner() {
 
@@ -316,23 +212,15 @@
 
 
           /*
-           * Hentikan kamera,
-           * lalu buka halaman Kasir.
+           * Hentikan kamera.
            */
           scanner.stop()
 
             .then(function() {
 
-              const urlKasir =
-                KASIR_URL +
-                "?id=" +
-                encodeURIComponent(
-                  idSantri
-                );
-
-
-              window.location.href =
-                urlKasir;
+              bukaKasir(
+                idSantri
+              );
 
             })
 
@@ -340,17 +228,13 @@
 
               console.error(error);
 
-
-              const urlKasir =
-                KASIR_URL +
-                "?id=" +
-                encodeURIComponent(
-                  idSantri
-                );
-
-
-              window.location.href =
-                urlKasir;
+              /*
+               * Tetap buka Kasir
+               * walaupun kamera gagal stop.
+               */
+              bukaKasir(
+                idSantri
+              );
 
             });
 
@@ -361,7 +245,7 @@
 
           /*
            * Error scanning biasa
-           * tidak perlu ditampilkan.
+           * tidak ditampilkan.
            */
 
         }
@@ -383,6 +267,44 @@
     }
 
 
+    /*
+     * BUKA HALAMAN KASIR
+     */
+    function bukaKasir(idSantri) {
+
+      const token =
+        String(
+          sessionStorage.getItem(
+            "bathikPetugasToken"
+          ) || ""
+        ).trim();
+
+
+      /*
+       * Kirim ID Santri dan token
+       * ke halaman Kasir.
+       */
+      const urlKasir =
+        KASIR_URL +
+        "?id=" +
+        encodeURIComponent(
+          idSantri
+        ) +
+        "&token=" +
+        encodeURIComponent(
+          token
+        );
+
+
+      window.location.href =
+        urlKasir;
+
+    }
+
+
+    /*
+     * Jalankan saat halaman dibuka.
+     */
     window.addEventListener(
       "load",
       function() {
