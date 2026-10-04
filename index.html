@@ -1,30 +1,392 @@
+```html
 <!DOCTYPE html>
 <html>
 <head>
+
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>Bathik SantriPay</title>
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
 
-  <script>
-    /*
-     * Teruskan seluruh query parameter,
-     * termasuk token petugas,
-     * ketika menuju scanner.html.
-     */
+  <title>Scan QR Santri</title>
 
-    window.location.replace(
-      "scanner.html" +
-      window.location.search
-    );
+  <script
+    src="https://unpkg.com/html5-qrcode"
+    type="text/javascript">
   </script>
+
+  <style>
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      text-align: center;
+    }
+
+    h2 {
+      margin-top: 10px;
+      margin-bottom: 8px;
+    }
+
+    .info {
+      margin-bottom: 20px;
+      color: #666;
+      font-size: 14px;
+    }
+
+    #reader {
+      width: 100%;
+      max-width: 420px;
+      margin: 0 auto;
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 10px;
+      overflow: hidden;
+    }
+
+    #status {
+      margin-top: 15px;
+      font-size: 14px;
+      color: #555;
+    }
+
+  </style>
+
 </head>
 
 <body>
 
-  <p>
-    Membuka Scanner...
-  </p>
+  <h2>SCAN QR SANTRI</h2>
+
+  <div class="info">
+    Arahkan kamera ke QR Code santri
+  </div>
+
+  <div id="reader"></div>
+
+  <div id="status">
+    Memeriksa sesi petugas...
+  </div>
+
+
+  <script>
+
+    let scanner = null;
+    let sudahScan = false;
+
+
+    /*
+     * URL Web App Apps Script
+     */
+    const KASIR_URL =
+      "https://script.google.com/macros/s/AKfycbzOaCgM6CgPCWMR0r4Mr2CXjBV-0vusdYflQE8HMPY3MuEY4ZQ4-Ec0z0ftoJ3NQ/exec";
+
+
+    /*
+     * URL Login Petugas
+     */
+    const LOGIN_PETUGAS_URL =
+      KASIR_URL +
+      "?page=LoginPetugas";
+
+
+    /*
+     * CEK SESI PETUGAS
+     */
+    function cekSesiPetugas() {
+
+      /*
+       * Ambil token dari URL.
+       */
+      const params =
+        new URLSearchParams(
+          window.location.search
+        );
+
+      const token =
+        String(
+          params.get("token") || ""
+        ).trim();
+
+
+      /*
+       * Jika token tidak ada,
+       * kembali ke Login Petugas.
+       */
+      if (!token) {
+
+        document.getElementById(
+          "status"
+        ).textContent =
+          "ERROR: Token petugas tidak ditemukan.";
+
+        return;
+      }
+
+
+      /*
+       * Simpan token ke sessionStorage.
+       */
+      sessionStorage.setItem(
+        "bathikPetugasToken",
+        token
+      );
+
+
+      /*
+       * Validasi token ke Apps Script.
+       */
+      const urlValidasi =
+        KASIR_URL +
+        "?action=validasiPetugas" +
+        "&token=" +
+        encodeURIComponent(token);
+
+
+      fetch(urlValidasi)
+
+        .then(function(response) {
+
+          return response.json();
+
+        })
+
+        .then(function(hasil) {
+
+          if (
+            !hasil ||
+            !hasil.berhasil
+          ) {
+
+            sessionStorage.removeItem(
+              "bathikPetugasToken"
+            );
+
+            document.getElementById(
+              "status"
+            ).textContent =
+              "ERROR: Token ditolak server.";
+
+            return;
+          }
+
+
+          /*
+           * Simpan data petugas.
+           */
+          sessionStorage.setItem(
+            "bathikPetugasId",
+            hasil.idPetugas || ""
+          );
+
+          sessionStorage.setItem(
+            "bathikPetugasNama",
+            hasil.nama || ""
+          );
+
+          sessionStorage.setItem(
+            "bathikPetugasRole",
+            hasil.role || ""
+          );
+
+
+          document.getElementById(
+            "status"
+          ).textContent =
+            "Login sebagai " +
+            hasil.nama +
+            ". Memulai kamera...";
+
+
+          /*
+           * Mulai scanner.
+           */
+          mulaiScanner();
+
+        })
+
+        .catch(function(error) {
+
+          console.error(error);
+
+          document.getElementById(
+            "status"
+          ).textContent =
+            "ERROR: Gagal menghubungi server.";
+
+        });
+
+    }
+
+
+    /*
+     * MULAI SCANNER
+     */
+    function mulaiScanner() {
+
+      scanner =
+        new Html5Qrcode("reader");
+
+
+      const config = {
+
+        fps: 10,
+
+        qrbox: {
+          width: 250,
+          height: 250
+        },
+
+        aspectRatio: 1.0
+
+      };
+
+
+      scanner.start(
+
+        {
+          facingMode: "environment"
+        },
+
+        config,
+
+
+        function(decodedText) {
+
+          /*
+           * Cegah scan berulang.
+           */
+          if (sudahScan) {
+            return;
+          }
+
+          sudahScan = true;
+
+
+          /*
+           * Ambil ID dari QR.
+           */
+          const idSantri =
+            String(
+              decodedText || ""
+            ).trim();
+
+
+          if (!idSantri) {
+
+            sudahScan = false;
+
+            return;
+          }
+
+
+          /*
+           * Tampilkan status.
+           */
+          document.getElementById(
+            "status"
+          ).textContent =
+            "QR terbaca. Membuka halaman kasir...";
+
+
+          /*
+           * Hentikan kamera.
+           */
+          scanner.stop()
+
+            .then(function() {
+
+              /*
+               * Kirim ID Santri ke Kasir.
+               */
+              const urlKasir =
+                KASIR_URL +
+                "?id=" +
+                encodeURIComponent(
+                  idSantri
+                );
+
+
+              /*
+               * Buka halaman Kasir.
+               */
+              window.location.href =
+                urlKasir;
+
+            })
+
+            .catch(function(error) {
+
+              console.error(error);
+
+
+              /*
+               * Jika kamera gagal dihentikan,
+               * tetap lanjut ke Kasir.
+               */
+              const urlKasir =
+                KASIR_URL +
+                "?id=" +
+                encodeURIComponent(
+                  idSantri
+                );
+
+
+              window.location.href =
+                urlKasir;
+
+            });
+
+        },
+
+
+        function(errorMessage) {
+
+          /*
+           * Error scanning biasa diabaikan.
+           */
+
+        }
+
+      )
+
+      .catch(function(error) {
+
+        console.error(error);
+
+        document.getElementById(
+          "status"
+        ).textContent =
+          "Kamera tidak dapat dibuka: " +
+          error;
+
+      });
+
+    }
+
+
+    /*
+     * JALANKAN SAAT HALAMAN DIBUKA
+     */
+    window.addEventListener(
+      "load",
+      function() {
+
+        cekSesiPetugas();
+
+      }
+    );
+
+  </script>
 
 </body>
 </html>
+```
