@@ -312,8 +312,15 @@
      */
     function bukaKasir(idSantri) {
 
+  const params =
+    new URLSearchParams(
+      window.location.search
+    );
+
   const namaPetugas =
-    sessionStorage.getItem("bathikPetugasNama") || "";
+    String(
+      params.get("petugas") || ""
+    ).trim();
 
   const urlKasir =
     KASIR_URL +
@@ -322,18 +329,9 @@
     "&petugas=" +
     encodeURIComponent(namaPetugas);
 
-  window.location.href = urlKasir;
+  window.location.href =
+    urlKasir;
 }
-    /*
-     * Jalankan saat halaman dibuka.
-     */
-    window.addEventListener(
-      "load",
-      function() {
-
-        cekSesiPetugas();
-
-      }
     );
 
   </script>
