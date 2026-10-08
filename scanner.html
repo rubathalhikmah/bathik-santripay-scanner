@@ -312,18 +312,11 @@
      */
     function bukaKasir(idSantri) {
 
-  const params =
-    new URLSearchParams(
-      window.location.search
-    );
-
   const namaPetugas =
     String(
-      params.get("petugas") ||
       sessionStorage.getItem(
         "bathikPetugasNama"
-      ) ||
-      ""
+      ) || ""
     ).trim();
 
   const urlKasir =
@@ -336,8 +329,6 @@
   window.location.href =
     urlKasir;
 }
-    );
-
   </script>
 
 </body>
