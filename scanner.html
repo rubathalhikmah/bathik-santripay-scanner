@@ -271,35 +271,18 @@
      */
     function bukaKasir(idSantri) {
 
-      const token =
-  String(
-    sessionStorage.getItem(
-      "bathikPetugasToken"
-    ) || ""
-  ).trim();
+  const namaPetugas =
+    sessionStorage.getItem("bathikPetugasNama") || "";
 
-const namaPetugas =
-  String(
-    sessionStorage.getItem(
-      "bathikPetugasNama"
-    ) || ""
-  ).trim();
+  const urlKasir =
+    KASIR_URL +
+    "?id=" +
+    encodeURIComponent(idSantri) +
+    "&petugas=" +
+    encodeURIComponent(namaPetugas);
 
-const urlKasir =
-  KASIR_URL +
-  "?id=" +
-  encodeURIComponent(idSantri) +
-  "&token=" +
-  encodeURIComponent(token) +
-  "&petugas=" +
-  encodeURIComponent(namaPetugas);
-
-      window.location.href =
-        urlKasir;
-
-    }
-
-
+  window.location.href = urlKasir;
+}
     /*
      * Jalankan saat halaman dibuka.
      */
