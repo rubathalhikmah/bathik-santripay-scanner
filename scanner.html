@@ -272,28 +272,27 @@
     function bukaKasir(idSantri) {
 
       const token =
-        String(
-          sessionStorage.getItem(
-            "bathikPetugasToken"
-          ) || ""
-        ).trim();
+  String(
+    sessionStorage.getItem(
+      "bathikPetugasToken"
+    ) || ""
+  ).trim();
 
+const namaPetugas =
+  String(
+    sessionStorage.getItem(
+      "bathikPetugasNama"
+    ) || ""
+  ).trim();
 
-      /*
-       * Kirim ID Santri dan token
-       * ke halaman Kasir.
-       */
-      const urlKasir =
-        KASIR_URL +
-        "?id=" +
-        encodeURIComponent(
-          idSantri
-        ) +
-        "&token=" +
-        encodeURIComponent(
-          token
-        );
-
+const urlKasir =
+  KASIR_URL +
+  "?id=" +
+  encodeURIComponent(idSantri) +
+  "&token=" +
+  encodeURIComponent(token) +
+  "&petugas=" +
+  encodeURIComponent(namaPetugas);
 
       window.location.href =
         urlKasir;
