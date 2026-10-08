@@ -306,13 +306,26 @@
               /*
                * Kirim ID Santri ke Kasir.
                */
-              const urlKasir =
-                KASIR_URL +
-                "?id=" +
-                encodeURIComponent(
-                  idSantri
-                );
+              const params =
+  new URLSearchParams(
+    window.location.search
+  );
 
+const namaPetugas =
+  String(
+    params.get("petugas") || ""
+  ).trim();
+
+const urlKasir =
+  KASIR_URL +
+  "?id=" +
+  encodeURIComponent(
+    idSantri
+  ) +
+  "&petugas=" +
+  encodeURIComponent(
+    namaPetugas
+  );
 
               /*
                * Buka halaman Kasir.
