@@ -312,13 +312,16 @@
      */
     function bukaKasir(idSantri) {
 
-  const namaPetugas =
-    String(
-      sessionStorage.getItem(
-        "bathikPetugasNama"
-      ) || ""
-    ).trim();
+const params =
+  new URLSearchParams(
+    window.location.search
+  );
 
+const namaPetugas =
+  String(
+    params.get("petugas") || ""
+  ).trim();
+      
   const urlKasir =
     KASIR_URL +
     "?id=" +
