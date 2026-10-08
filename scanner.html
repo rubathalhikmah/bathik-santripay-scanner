@@ -94,55 +94,96 @@
      */
     function cekSesiPetugas() {
 
-      const params =
-        new URLSearchParams(
-          window.location.search
-        );
+  const params =
+    new URLSearchParams(
+      window.location.search
+    );
 
+  const token =
+    String(
+      params.get("token") || ""
+    ).trim();
 
-      const token =
-        String(
-          params.get("token") || ""
-        ).trim();
+  if (!token) {
 
+    document.getElementById(
+      "status"
+    ).textContent =
+      "ERROR: Token petugas tidak ditemukan.";
 
-      /*
-       * Token wajib ada.
-       */
-      if (!token) {
+    return;
+  }
+
+  sessionStorage.setItem(
+    "bathikPetugasToken",
+    token
+  );
+
+  /*
+   * Ambil nama petugas dari server.
+   */
+  const urlValidasi =
+    KASIR_URL +
+    "?action=validasiPetugas" +
+    "&token=" +
+    encodeURIComponent(token);
+
+  fetch(urlValidasi)
+    .then(function(response) {
+      return response.json();
+    })
+    .then(function(hasil) {
+
+      if (!hasil || !hasil.berhasil) {
 
         document.getElementById(
           "status"
         ).textContent =
-          "ERROR: Token petugas tidak ditemukan.";
+          "ERROR: Sesi petugas tidak valid.";
 
         return;
       }
 
-
       /*
-       * Simpan token ke sessionStorage.
+       * Simpan data petugas.
        */
       sessionStorage.setItem(
-        "bathikPetugasToken",
-        token
+        "bathikPetugasId",
+        hasil.idPetugas || ""
       );
 
+      sessionStorage.setItem(
+        "bathikPetugasNama",
+        hasil.nama || ""
+      );
 
-      /*
-       * Token ditemukan.
-       * Langsung mulai kamera.
-       */
+      sessionStorage.setItem(
+        "bathikPetugasRole",
+        hasil.role || ""
+      );
+
       document.getElementById(
         "status"
       ).textContent =
-        "Sesi petugas ditemukan. Memulai kamera...";
-
+        "Login sebagai " +
+        hasil.nama +
+        ". Memulai kamera...";
 
       mulaiScanner();
 
-    }
+    })
+    .catch(function(error) {
 
+      console.error(error);
+
+      document.getElementById(
+        "status"
+      ).textContent =
+        "ERROR: Gagal menghubungi server.";
+
+    });
+
+}
 
     /*
      * MULAI SCANNER
