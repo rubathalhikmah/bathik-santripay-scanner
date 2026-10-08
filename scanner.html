@@ -319,7 +319,11 @@
 
   const namaPetugas =
     String(
-      params.get("petugas") || ""
+      params.get("petugas") ||
+      sessionStorage.getItem(
+        "bathikPetugasNama"
+      ) ||
+      ""
     ).trim();
 
   const urlKasir =
