@@ -311,34 +311,20 @@
      * BUKA HALAMAN KASIR
      */
     function bukaKasir(idSantri) {
-
   const params =
-    new URLSearchParams(
-      window.location.search
-    );
-
-  const token =
-    sessionStorage.getItem(
-      "bathikPetugasToken"
-    ) || params.get("token") || "";
+    new URLSearchParams(window.location.search);
 
   const namaPetugas =
-    sessionStorage.getItem(
-      "bathikPetugasNama"
-    ) || params.get("petugas") || "";
+    String(params.get("petugas") || "").trim();
 
   const urlKasir =
     KASIR_URL +
-    "?page=Kasir" +
-    "&id=" +
+    "?id=" +
     encodeURIComponent(idSantri) +
     "&petugas=" +
-    encodeURIComponent(namaPetugas) +
-    "&token=" +
-    encodeURIComponent(token);
+    encodeURIComponent(namaPetugas);
 
   window.location.href = urlKasir;
-}
 }
   </script>
 
