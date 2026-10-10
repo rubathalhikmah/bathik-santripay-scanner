@@ -312,25 +312,33 @@
      */
     function bukaKasir(idSantri) {
 
-const params =
-  new URLSearchParams(
-    window.location.search
-  );
+  const params =
+    new URLSearchParams(
+      window.location.search
+    );
 
-const namaPetugas =
-  String(
-    params.get("petugas") || ""
-  ).trim();
-      
+  const token =
+    sessionStorage.getItem(
+      "bathikPetugasToken"
+    ) || params.get("token") || "";
+
+  const namaPetugas =
+    sessionStorage.getItem(
+      "bathikPetugasNama"
+    ) || params.get("petugas") || "";
+
   const urlKasir =
     KASIR_URL +
-    "?id=" +
+    "?page=Kasir" +
+    "&id=" +
     encodeURIComponent(idSantri) +
     "&petugas=" +
-    encodeURIComponent(namaPetugas);
-      
-  window.location.href =
-    urlKasir;
+    encodeURIComponent(namaPetugas) +
+    "&token=" +
+    encodeURIComponent(token);
+
+  window.location.href = urlKasir;
+}
 }
   </script>
 
