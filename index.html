@@ -355,13 +355,29 @@ const urlKasir =
                * Jika kamera gagal dihentikan,
                * tetap lanjut ke Kasir.
                */
-              const urlKasir =
-                KASIR_URL +
-                "?id=" +
-                encodeURIComponent(
-                  idSantri
-                );
+              const paramsKasir =
+  new URLSearchParams(
+    window.location.search
+  );
 
+const tokenPetugas =
+  String(
+    paramsKasir.get("token") || ""
+  ).trim();
+
+const namaPetugas =
+  String(
+    paramsKasir.get("petugas") || ""
+  ).trim();
+
+const urlKasir =
+  KASIR_URL +
+  "?id=" +
+  encodeURIComponent(idSantri) +
+  "&petugas=" +
+  encodeURIComponent(namaPetugas) +
+  "&token=" +
+  encodeURIComponent(tokenPetugas);
 
               window.location.href =
                 urlKasir;
