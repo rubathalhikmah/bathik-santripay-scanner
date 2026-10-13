@@ -318,16 +318,25 @@ const namaPetugas =
     params.get("petugas") || ""
   ).trim();
 
+
+const paramsKasir =
+  new URLSearchParams(
+    window.location.search
+  );
+
+const tokenPetugas =
+  String(
+    paramsKasir.get("token") || ""
+  ).trim();
+
 const urlKasir =
   KASIR_URL +
   "?id=" +
-  encodeURIComponent(
-    idSantri
-  ) +
+  encodeURIComponent(idSantri) +
   "&petugas=" +
-  encodeURIComponent(
-    namaPetugas
-  );
+  encodeURIComponent(namaPetugas) +
+  "&token=" +
+  encodeURIComponent(tokenPetugas);
 
               /*
                * Buka halaman Kasir.
